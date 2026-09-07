@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const verifyToken = (req, res, next) => {
+const Auth =  require('../models/authmodel');
+const verifyToken = async (req, res, next) => {
     const token = req.cookies?.access_token;
 
     if(!token){
@@ -7,7 +8,13 @@ const verifyToken = (req, res, next) => {
     }
     try{
         const decoded = jwt.verify(token, process.env.APP_SECRET);
-        req.user = decoded;
+
+        const userinfo = await Auth.findById(decoded.id)
+
+        if(!userinfo){
+            return res.status(404).json({message: "User not found"})
+        }
+        req.user = {id: userinfo._id, role: userinfo.role};
         next();
     } catch(err){
         res.status(500).json({message: "Invalid token"})

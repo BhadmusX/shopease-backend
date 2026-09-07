@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {verifyToken} = require('../middlewares/verifyToken');
+const {isAdmin} = require('../middlewares/isAdmin');
 const {createProduct} = require('../controllers/productcontroller');
 const multer = require('multer');
 const path = require('path');
@@ -16,5 +17,5 @@ const storage = multer.diskStorage({
  
  const upload = multer({ storage: storage })
 
-router.post('/product/create', verifyToken, upload.single('imageUrl'), createProduct)
+router.post('/product/create', verifyToken, isAdmin, upload.single('imageUrl'), createProduct)
 module.exports = router;
