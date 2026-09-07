@@ -4,7 +4,7 @@ const verifyToken = async (req, res, next) => {
     const token = req.cookies?.access_token;
 
     if(!token){
-        res.status(401).json({message: "Access denied, No  token provided"})
+        return res.status(401).json({message: "Access denied, No  token provided"})
     }
     try{
         const decoded = jwt.verify(token, process.env.APP_SECRET);
@@ -17,7 +17,7 @@ const verifyToken = async (req, res, next) => {
         req.user = {id: userinfo._id, role: userinfo.role};
         next();
     } catch(err){
-        res.status(500).json({message: "Invalid token"})
+        return res.status(500).json({message: "Invalid token"})
     }
 };
 
