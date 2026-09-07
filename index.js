@@ -16,6 +16,8 @@ const authrouter = require('./routes/authroutes');
 app.use(authrouter);
 const productroute = require('./routes/productroute');
 app.use(productroute);
+const favoriteroute = require('./routes/favoriteroute');
+app.use(favoriteroute);
 
 
 
