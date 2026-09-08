@@ -106,7 +106,7 @@ const refreshToken = async (req, res) => {
         try{
             decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
         }catch(err){
-            res.status(403).json({message: "Invalid or expired refresh token"});
+            return res.status(403).json({message: "Invalid or expired refresh token"});
         }
 
         const user = await Auth.findById(decoded.id);

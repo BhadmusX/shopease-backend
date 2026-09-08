@@ -15,12 +15,12 @@ const createFavorite = async(req, res) => {
         const isFavorited = await Favorite.findOne({productId, userId});
 
         if(isFavorited){
-            return res.status(404).json({message: "Favorite already exist"});
+            return res.status(409).json({message: "Favorite already exist"});
         }
 
         const favorite = new Favorite({
             productId,
-            userId: req.user.id
+            userId,
         });
 
         await favorite.save();
@@ -39,6 +39,20 @@ const deleteFavorite = async (req, res) => {
     if(!favorite){
         return res.status(404).json({message: "Favorite not found"});
     }
+
+    const deleted = await favorite.findByIdAndDelete(favorite._id);
+    return res.status(200).json(deleted);
 }
 
-module.exports = {createFavorite};
+const getFavorites = async (req, res) => {
+    try{
+    const favorites = await Favorite.find({userId: req.user.id}).populate("productId");
+
+    return res.status(200).json(favorites);
+    }catch(err){
+        console.log(err);
+        return res.status(500).json({message: err.message});
+    }
+}
+
+module.exports = {createFavorite, deleteFavorite, getFavorites};
