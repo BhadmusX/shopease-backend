@@ -32,4 +32,13 @@ const createFavorite = async(req, res) => {
     }
 }
 
+const deleteFavorite = async (req, res) => {
+    const {favoriteId} = req.body;
+    const favorite = await Favorite.findById(favoriteId);
+
+    if(!favorite){
+        return res.status(404).json({message: "Favorite not found"});
+    }
+}
+
 module.exports = {createFavorite};
