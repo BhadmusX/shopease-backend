@@ -18,6 +18,8 @@ const productroute = require('./routes/productroute');
 app.use(productroute);
 const favoriteroute = require('./routes/favoriteroute');
 app.use(favoriteroute);
+const cartroute = require('./routes/cartroute');
+app.use(cartroute);
 
 
 
