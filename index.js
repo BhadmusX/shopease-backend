@@ -20,6 +20,8 @@ const favoriteroute = require('./routes/favoriteroute');
 app.use(favoriteroute);
 const cartroute = require('./routes/cartroute');
 app.use(cartroute);
+const paymentroute = require('./routes/paymentroute');
+app.use(paymentroute);
 
 
 
