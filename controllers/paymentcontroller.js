@@ -1,4 +1,4 @@
-const { stripe } = require("../config/stripe");
+const stripe = require("../config/stripe");
 const Order = require("../models/ordermodel");
 
 const createCheckoutSession = async (req, res)=> {
@@ -12,7 +12,7 @@ const createCheckoutSession = async (req, res)=> {
         let totalAmount = 0;
         const lineItems = products.map(product => {
             const amount = Math.round(product.price * 100)
-            totalAmount += amount * product*qty;
+            totalAmount += amount * product.qty;
 
             return{
                 price_data: {
@@ -22,7 +22,8 @@ const createCheckoutSession = async (req, res)=> {
                         images:[product.imageUrl],
                     },
                     unit_amount: amount
-                }
+                },
+                quantity: product.qty
             }
         })
 
@@ -30,7 +31,7 @@ const createCheckoutSession = async (req, res)=> {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode:"payment",
-            success_url: `${process.env.CLIENT_URL}/purchase-sucess?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${process.env.CLIENT_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
             metadata: {
                 userId: req.user.id,
@@ -73,6 +74,9 @@ const checkOutSuccess = async (req, res) => {
             await newOrder.save();
             return res.status(201).json({success: true, message: "payment successful", orderId: newOrder._id})
         }
+        else {
+    return res.status(400).json({ success: false, message: "Payment not completed" });
+}
     }catch(err){
         console.log(err);
         res.status(500).json({message: err.message})

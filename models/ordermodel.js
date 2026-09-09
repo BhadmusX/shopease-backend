@@ -9,7 +9,6 @@ const orderSchema = new mongoose.Schema({
         product:{
             type: mongoose.Schema.Types.ObjectId,
             ref: "product",
-            unique: true,
         },
         qty:{
             type:Number,
