@@ -3,7 +3,7 @@ const createcartItem = async (req, res) => {
     try{
         const userId = req.user.id;
         const {productId, qty} = req.body
-        const item = await Cart.findOne({userId});
+        const item = await Cart.findOne({userId, productId});
 
         if(item){
             item.qty += qty || 1;
@@ -25,4 +25,62 @@ const createcartItem = async (req, res) => {
     }
 }
 
-module.exports = {createcartItem};
+const getCartItems = async(req, res) => {
+    try{
+        const userid = req.user.id;
+        const items = await Cart.find({userId: userid}).populate("productId");
+
+        return res.status(200).json(items);
+    }catch(err){
+        console.log(err);
+        return res.status(500).json({message: err.message});
+    }
+}
+
+const deleteCartItem = async(req, res) => {
+    try{
+        const userid = req.user.id;
+        const {productId} = req.body;
+
+        const item = await Cart.findOne({userId: userid, productId});
+        if(!item){
+            return res.status(404).json({message: "Cart item not found"});
+        }
+
+    const deleted = await Cart.findByIdAndDelete(item._id);
+    return res.status(200).json(deleted);
+    }catch(err){
+        console(err);
+        return res.status(500).json({message: err.message});
+    }
+}
+
+const updateCartQty = async(req, res) => {
+    try{
+        const userId= req.user.id;
+        const {qty, productId} = req.body;
+        
+
+        if(qty < 1){
+            return res.status(400).json({message: "Quantity must be higher than 1"})
+        }
+
+        const item = await Cart.findOne({userId, productId});
+
+        if(!item){
+            return res.status(404).json({message: "Item not found"});
+        }
+
+        const updated = await Cart.findByIdAndUpdate(
+            item._id,
+            {qty},
+            {"returnDocument": "after"}
+        );
+        return res.status(200).json(updated);
+    }catch(err){
+        console.log(err);
+        return res.status(500).json({message: err.message})
+    }
+}
+
+module.exports = {createcartItem, deleteCartItem, getCartItems, updateCartQty};

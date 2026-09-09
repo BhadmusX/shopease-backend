@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Auth = require('../models/authmodel');
+const redisClient = require('../config/redis');
 
 const signUp = async (req, res) => {
     const {name, email, password} = req.body;
@@ -52,8 +53,10 @@ const signIn = async (req, res) => {
 
     const refreshToken = jwt.sign({id: userInfo._id}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: "7d"})
 
-    userInfo.refreshToken =refreshToken;
+    userInfo.refreshToken = refreshToken;
     await userInfo.save();
+
+    redisClient.set(`refreshToken:${userInfo._id}`, refreshToken, {'EX': 7 * 24 * 60 * 60 * 1000});
 
     res.cookie("access_token", token, {
         httpOnly: true,
@@ -67,7 +70,7 @@ const signIn = async (req, res) => {
         httpOnly: true,
         sameSite: "lax",
         secure: false,
-        path: '/refresh',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -105,6 +108,12 @@ const refreshToken = async (req, res) => {
         let decoded;
         try{
             decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+            const redisrefreshToken = await redisClient.get(`refreshToken:${decoded.id}`);
+
+            if(redisrefreshToken !== refreshToken){
+                return res.status(401).json({message: "Invalid refresh token"})
+            }
         }catch(err){
             return res.status(403).json({message: "Invalid or expired refresh token"});
         }
@@ -133,14 +142,14 @@ const refreshToken = async (req, res) => {
 
 const signOut = async (req, res)=> {
     try{
-     const refreshToken = req.cookies?.refresh_token;
-     
-     if(refreshToken){
-        await Auth.findOneAndUpdate({refreshToken}, {$set: {refreshToken: null}})
-     }
+        const refreshToken = req.cookies?.refresh_token;
+
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+        await redisClient.del(`refreshToken:${decoded.id}`);
 
      res.clearCookie("access_token", {path: '/'});
-     res.clearCookie('refresh_token', {path: '/refresh'});
+     res.clearCookie('refresh_token', {path: '/'});
 
      return res.status(200).json({messaage: "Logged out successfully"})
     }catch(err){
