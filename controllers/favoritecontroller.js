@@ -33,14 +33,14 @@ const createFavorite = async(req, res) => {
 }
 
 const deleteFavorite = async (req, res) => {
-    const {favoriteId} = req.body;
+    const favoriteId = req.params.id;
     const favorite = await Favorite.findById(favoriteId);
 
     if(!favorite){
         return res.status(404).json({message: "Favorite not found"});
     }
 
-    const deleted = await favorite.findByIdAndDelete(favorite._id);
+    const deleted = await Favorite.findByIdAndDelete(favorite._id);
     return res.status(200).json(deleted);
 }
 

@@ -40,9 +40,9 @@ const getCartItems = async(req, res) => {
 const deleteCartItem = async(req, res) => {
     try{
         const userid = req.user.id;
-        const {productId} = req.body;
+        const cartId = req.params.id;
 
-        const item = await Cart.findOne({userId: userid, productId});
+        const item = await Cart.findOne({userId: userid, _id: cartId});
         if(!item){
             return res.status(404).json({message: "Cart item not found"});
         }
@@ -57,15 +57,16 @@ const deleteCartItem = async(req, res) => {
 
 const updateCartQty = async(req, res) => {
     try{
-        const userId= req.user.id;
-        const {qty, productId} = req.body;
+        const userId = req.user.id;
+        const {qty} = req.body;
+        const cartId= req.params.id;
         
 
         if(qty < 1){
             return res.status(400).json({message: "Quantity must be higher than 1"})
         }
 
-        const item = await Cart.findOne({userId, productId});
+        const item = await Cart.findOne({userId: userId, _id: cartId});
 
         if(!item){
             return res.status(404).json({message: "Item not found"});

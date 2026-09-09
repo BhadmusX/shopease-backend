@@ -5,7 +5,7 @@ const {createcartItem, getCartItems, updateCartQty, deleteCartItem} = require('.
 
 router.post('/cart/create', verifyToken, createcartItem);
 router.get('/cart/get', verifyToken, getCartItems);
-router.put('/cart/update', verifyToken, updateCartQty);
-router.delete('/cart/delete', verifyToken, deleteCartItem);
+router.put('/cart/update/:id', verifyToken, updateCartQty);
+router.delete('/cart/delete/:id', verifyToken, deleteCartItem);
 
 module.exports = router;
