@@ -1,4 +1,5 @@
 const Product = require('../models/productmodel');
+const {imageResolver} = require('../utils/imageResolver.js')
 const createProduct = async (req, res) => {
     const {category, title, price} =  req.body;
 
@@ -37,6 +38,29 @@ const getProducts = async (req, res) => {
     }catch(err){
         console.log(err);
         res.status(500).json({message: err.message});
+    }
+}
+
+const getCombinedProducts = async (req, res) => {
+    try{
+      const dbproducts = await Product.find();
+      const fakeApisRes = await fetch('https://fakestoreapi.com/products');
+      const fakeApiProducts = await fakeApisRes.json();
+      
+      const combined = [
+                ...dbproducts.map(p => ({
+                    ...p.toObject(),
+                    image: p.image || p.imageUrl,
+                    imageUrl: imageResolver(p.image || p.imageUrl, 'internal'),
+                    id: p._id.toString(),
+                    source: 'internal'
+                })),
+        ...fakeApiProducts.map(p => ({...p, id: p.id.toString(), source: 'external'}))
+      ];
+      res.status(201).json(combined);
+    }catch(err){
+        console.log(err);
+        res.status(500).json({message: "couldn't fetch products"})
     }
 }
 
@@ -95,4 +119,4 @@ const updateProductById = async(req, res) => {
         }
 }
 
-module.exports = {createProduct, getProducts, getProductById, deleteProductById, updateProductById};
+module.exports = {createProduct, getProducts, getProductById, deleteProductById, updateProductById, getCombinedProducts};

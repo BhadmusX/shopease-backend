@@ -56,7 +56,7 @@ const signIn = async (req, res) => {
     userInfo.refreshToken = refreshToken;
     await userInfo.save();
 
-    redisClient.set(`refreshToken:${userInfo._id}`, refreshToken, {'EX': 7 * 24 * 60 * 60 * 1000});
+    redisClient.set(`refreshToken:${userInfo._id}`, refreshToken, {'EX': 7 * 24 * 60 * 60});
 
     res.cookie("access_token", token, {
         httpOnly: true,
@@ -75,7 +75,7 @@ const signIn = async (req, res) => {
     });
 
 
-    res.status(200).json({message: 'Sign in Successfull'})
+    res.status(200).json({message: 'Sign in Successfull', data: {name: userInfo.name, email: userInfo.email}})
 }catch(err){
     console.log(err);
     res.status(500).json({message: err.message});
@@ -89,8 +89,9 @@ const getMe = async (req, res) => {
         if(!user){
         return res.status(404).json({message: "User not found"});
         }
+        const newUser = {name: user.name, email: user.email, id: user._id};
 
-        res.status(200).json(user);
+        res.status(200).json(newUser);
     }catch(err){
         console.log(err);
         res.status(500).json({message: err.message})

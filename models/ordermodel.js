@@ -6,9 +6,21 @@ const orderSchema = new mongoose.Schema({
         required: true,
     },
     products: [{
-        product:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "product",
+        productId:{
+            type: String,
+            required: true,
+        },
+        title: {
+            type: String,
+            required: true,
+        }, 
+        source: {
+           type: String,
+           enum: ['external', 'internal'], 
+        },
+        imageUrl: {
+            type: String,
+            required: true
         },
         qty:{
             type:Number,

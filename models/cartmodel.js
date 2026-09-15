@@ -7,8 +7,28 @@ const cartSchema = new mongoose.Schema({
         required:true
     },
     productId:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "product",
+        type: String,
+        required: true,
+    },
+    title: {
+        type:String,
+        required: true,
+    },
+    category: {
+        type:String,
+        required: true,
+    },
+    imageUrl:{
+        type:String,
+        required: true
+    },
+    price: {
+        type:Number,
+        required: true
+    },
+    source: {
+        enum: ['external', "internal"],
+        type:String,
         required: true,
     },
     qty: {

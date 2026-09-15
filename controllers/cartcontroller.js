@@ -2,7 +2,7 @@ const Cart = require('../models/cartmodel');
 const createcartItem = async (req, res) => {
     try{
         const userId = req.user.id;
-        const {productId, qty} = req.body
+        const {productId, title, category, price, source, imageUrl, qty} = req.body
         const item = await Cart.findOne({userId, productId});
 
         if(item){
@@ -13,12 +13,17 @@ const createcartItem = async (req, res) => {
 
         const newitem = new Cart({
             productId,
+            title,
+            category,
+            price,
+            source,
+            imageUrl,
             qty: qty || 1,
             userId: userId
         })
 
         await newitem.save();
-        return res.status(201).json(newitem);
+        return res.status(201).json({message: "item Added", newitem});
     }catch(err){
         console.log(err);
         return res.status(500).json({message: err.message});
@@ -59,11 +64,11 @@ const updateCartQty = async(req, res) => {
     try{
         const userId = req.user.id;
         const {qty} = req.body;
-        const cartId= req.params.id;
+        const cartId = req.params.id;
         
 
-        if(qty < 1){
-            return res.status(400).json({message: "Quantity must be higher than 1"})
+        if(!Number.isInteger(qty) || qty < 1){
+            return res.status(400).json({message: "Quantity must be at least 1"})
         }
 
         const item = await Cart.findOne({userId: userId, _id: cartId});

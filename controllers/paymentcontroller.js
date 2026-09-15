@@ -1,5 +1,6 @@
 const stripe = require("../config/stripe");
 const Order = require("../models/ordermodel");
+const Cart = require('../models/cartmodel');
 
 const createCheckoutSession = async (req, res)=> {
     try{
@@ -18,8 +19,7 @@ const createCheckoutSession = async (req, res)=> {
                 price_data: {
                     currency: 'usd',
                     product_data: {
-                        name: product.title,
-                        images:[product.imageUrl],
+                        name: product.title
                     },
                     unit_amount: amount
                 },
@@ -34,17 +34,16 @@ const createCheckoutSession = async (req, res)=> {
             success_url: `${process.env.CLIENT_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
             metadata: {
-                userId: req.user.id,
+                userId: String(req.user.id),
                 products: JSON.stringify(
                     products.map((p) => ({
-                        id: p._id,
+                        productId: p._id,
                         qty: p.qty,
-                        price:p.price,
                     }))
                 )
             }
         })    
-        res.status(201).json({id: session.id, totalAmount: totalAmount / 100});
+        res.status(201).json({id: session.id, url: session.url, totalAmount: totalAmount / 100});
         }catch(err){
             console.log(err);
             res.status(500).json({message: err.message});
@@ -57,26 +56,48 @@ const checkOutSuccess = async (req, res) => {
         const {sessionId} = req.body;
         const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-        if(session.payment_status === "paid"){
-            const products = JSON.parse(session.metadata.products);
+        if(session.payment_status !== "paid"){
+             return res.status(400).json({ success: false, message: "Payment not completed" });
+            }
+
+
+            const checkedOutItems = JSON.parse(session.metadata.products);
+            const productIds = checkedOutItems.map(item => item.productId);
+
+            const cartItems = await Cart.find({
+                userId: session.metadata.userId,
+                productId: {$in: productIds}
+            })
+
+            const orderProducts = cartItems.map(cartItem => {
+                const checkedOut = checkedOutItems.find(c => c.productId === cartItem.productId);
+                return {
+                    productId: cartItem.productId,
+                    source: cartItem.source,
+                    title: cartItem.title,
+                    imageUrl: cartItem.imageUrl,
+                    category: cartItem.category,
+                    price: cartItem.price,
+                    qty: checkedOut.qty
+                };
+            })
+
+
             const newOrder = new Order({
                 user: session.metadata.userId,
-                products: products.map(product => ({
-                    product:product.id,
-                    qty: product.qty,
-                    price: product.price
-                })
-            ),
+                products: orderProducts,
             totalAmount: session.amount_total / 100,
             stripeSessionId: sessionId
             })
 
             await newOrder.save();
+
+            await Cart.deleteMany({userId: session.metadata.userId,
+                productId: {$in: productIds}
+            })
+
             return res.status(201).json({success: true, message: "payment successful", orderId: newOrder._id})
-        }
-        else {
-    return res.status(400).json({ success: false, message: "Payment not completed" });
-}
+    
     }catch(err){
         console.log(err);
         res.status(500).json({message: err.message})

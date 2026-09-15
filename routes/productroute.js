@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {verifyToken} = require('../middlewares/verifyToken');
 const {isAdmin} = require('../middlewares/isAdmin');
-const {createProduct, getProducts, getProductById, deleteProductById, updateProductById} = require('../controllers/productcontroller');
+const {createProduct,getProducts, getProductById, deleteProductById, updateProductById, getCombinedProducts} = require('../controllers/productcontroller');
 const multer = require('multer');
 const path = require('path');
 const storage = multer.diskStorage({
@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
  const upload = multer({ storage: storage })
 
 router.post('/product/create', verifyToken, isAdmin, upload.single('imageUrl'), createProduct);
-router.get('/product/get', verifyToken, getProducts);
+router.get('/product/get', verifyToken, getCombinedProducts);
 router.get('/product/get/:id', verifyToken, getProductById);
 router.delete('/product/delete/:id', verifyToken, isAdmin, deleteProductById);
 router.put('/product/update/:id', verifyToken, isAdmin, upload.single('imageUrl'), updateProductById);
