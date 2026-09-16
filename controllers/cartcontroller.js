@@ -89,4 +89,14 @@ const updateCartQty = async(req, res) => {
     }
 }
 
-module.exports = {createcartItem, deleteCartItem, getCartItems, updateCartQty};
+const clearCart = async (req, res) => {
+    try{
+    const userId = req.user.id;
+    await Cart.deleteMany({userId: userId});
+    res.status(200).json({message: 'cart Cleared'})    
+}catch(err){
+    res.status(500).json({message: err.message});
+}
+}
+
+module.exports = {createcartItem, deleteCartItem, getCartItems, updateCartQty, clearCart};
