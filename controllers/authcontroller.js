@@ -89,7 +89,7 @@ const getMe = async (req, res) => {
         if(!user){
         return res.status(404).json({message: "User not found"});
         }
-        const newUser = {name: user.name, email: user.email, id: user._id};
+        const newUser = {name: user.name, email: user.email, id: user._id, role: user.role};
 
         res.status(200).json(newUser);
     }catch(err){

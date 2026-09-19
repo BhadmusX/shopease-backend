@@ -20,7 +20,7 @@ const createProduct = async (req, res) => {
             imageUrl: req.file ? req.file.path : null
         })
         await product.save();
-        res.status(201).json(product)
+        res.status(201).json({message: 'Product Created', product})
     }catch(err){
         console.log(err);
         res.status(500).json({message: err.message});
