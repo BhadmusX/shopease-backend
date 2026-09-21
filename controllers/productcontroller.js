@@ -30,11 +30,14 @@ const createProduct = async (req, res) => {
 const getProducts = async (req, res) => {
     try{
         const products = await Product.find();
-        if(products.lenght === 0){
-            return res.status(404).json({message: "Products is empty"});
+        if(products.length === 0){
+            return res.status(200).json([]);
         }
 
-        res.status(200).json(products);
+        const product = products.map(p => {
+            return {...p.toObject(), id: p._id};
+        })
+        res.status(200).json(product);
     }catch(err){
         console.log(err);
         res.status(500).json({message: err.message});
@@ -106,7 +109,7 @@ const updateProductById = async(req, res) => {
         const {price, title, category} = req.body
 
         if(req.file){
-            const updated = await Product.findByIdAndUpdate(req.params.id, {price, title, category, imageUrl: req.file.path}, {returnDocument: "after"});
+            const updated = await Product.findByIdAndUpdate(req.params.id, {price, title, category, imageUrl: req.file.path}, {new: true});
             return res.status(200).json(updated);
         }
         const updated = await Product.findByIdAndUpdate(req.params.id, {price, title, category}, {new: true});
