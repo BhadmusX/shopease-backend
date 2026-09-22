@@ -55,7 +55,6 @@ const deleteCartItem = async(req, res) => {
     const deleted = await Cart.findByIdAndDelete(item._id);
     return res.status(200).json(deleted);
     }catch(err){
-        console(err);
         return res.status(500).json({message: err.message});
     }
 }

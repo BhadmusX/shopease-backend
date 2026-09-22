@@ -75,7 +75,7 @@ const signIn = async (req, res) => {
     });
 
 
-    res.status(200).json({message: 'Sign in Successfull', data: {name: userInfo.name, email: userInfo.email}})
+    res.status(200).json({message: 'Sign in Successfull', data: {name: userInfo.name, email: userInfo.email, role: userInfo.role}})
 }catch(err){
     console.log(err);
     res.status(500).json({message: err.message});
