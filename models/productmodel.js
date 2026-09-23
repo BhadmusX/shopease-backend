@@ -16,6 +16,11 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    isFeatured: {
+        type: Boolean,
+        default: "true",
+        required: true
+    }
 }, {timestamps: true})
 
 const Product = mongoose.model('product', productSchema);

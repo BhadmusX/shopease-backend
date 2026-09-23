@@ -121,5 +121,24 @@ const updateProductById = async(req, res) => {
             res.status(500).json({message: err.message})
         }
 }
+const toggleFeaturedProduct = async (req, res) => {
+    try{
+        const productId = req.params.id;
 
-module.exports = {createProduct, getProducts, getProductById, deleteProductById, updateProductById, getCombinedProducts};
+        const product = await Product.findById(productId);
+
+        if(!product){
+            return res.status(404).json({message: 'Product not found.'});
+        }
+
+        product.isFeatured = !product.isFeatured;
+
+        const updatedProduct = await product.save();
+        return res.status(200).json({message: 'product updated', updatedProduct});
+    }catch(err){
+        console.log(err);
+        return res.status(500).json({message: err.message});
+    }
+}
+
+module.exports = {createProduct, getProducts, getProductById, deleteProductById, updateProductById, getCombinedProducts, toggleFeaturedProduct};
