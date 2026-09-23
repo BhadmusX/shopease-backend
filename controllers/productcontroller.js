@@ -141,4 +141,20 @@ const toggleFeaturedProduct = async (req, res) => {
     }
 }
 
-module.exports = {createProduct, getProducts, getProductById, deleteProductById, updateProductById, getCombinedProducts, toggleFeaturedProduct};
+const getFeaturedProducts = async(req, res) => {
+    try{
+        const products = await Product.find({isFeatured: true}).lean()
+
+        const formattedProducts = products.map(p => {
+            const resolvedImage = imageResolver(p.imageUrl, 'internal');
+            return {...p, id: p._id, image: resolvedImage, imageUrl: resolvedImage, source: 'internal'};
+        });
+
+        return res.status(200).json(formattedProducts);
+    }catch(err){
+        console.log(err);
+        return res.status(500).json({message: err.message});
+    }
+}
+
+module.exports = {createProduct, getProducts, getProductById, deleteProductById, updateProductById, getCombinedProducts, toggleFeaturedProduct, getFeaturedProducts};

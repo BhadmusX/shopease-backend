@@ -18,8 +18,7 @@ const productSchema = new mongoose.Schema({
     },
     isFeatured: {
         type: Boolean,
-        default: "true",
-        required: true
+        default: true,
     }
 }, {timestamps: true})
 
