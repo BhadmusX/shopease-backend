@@ -53,11 +53,8 @@ const getFavorites = async (req, res) => {
     try{
     const favorites = await Favorite.find({userId: req.user.id})
     const newFavorite = favorites.map(fav => {
-        
-                const resolvedImage = imageResolver(fav.imageUrl, fav.source);
                 return{
-                    image: resolvedImage,
-                    imageUrl: resolvedImage,
+                    imageUrl: fav.imageUrl,
           id: fav._id,
           title: fav.title,
           category: fav.category,

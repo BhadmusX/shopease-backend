@@ -16,6 +16,9 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    cloudinaryPublicId: {
+        type: String,
+    },
     isFeatured: {
         type: Boolean,
         default: true,

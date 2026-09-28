@@ -1,5 +1,8 @@
 const Product = require('../models/productmodel');
-const {imageResolver} = require('../utils/imageResolver.js')
+const {imageResolver} = require('../utils/imageResolver.js');
+const uploadToCloudinary = require('../utils/uploadToCloudinary.js');
+const cloudinary = require('../config/cloudinary.js');
+
 const createProduct = async (req, res) => {
     const {category, title, price} =  req.body;
 
@@ -13,11 +16,21 @@ const createProduct = async (req, res) => {
         return res.status(409).json({message: "Product already exist"})
     };
 
+    let imageUrl = null;
+    let cloudinaryPublicId = null;
+
+    if(req.file) {
+        const result = await uploadToCloudinary(req.file.buffer);
+        imageUrl = result.secure_url;
+        cloudinaryPublicId = result.public_id;
+    }
+
         const product = new Product({
             title,
             price,
             category,
-            imageUrl: req.file ? req.file.path : null
+            imageUrl,
+            cloudinaryPublicId
         })
         await product.save();
         res.status(201).json({message: 'Product Created', product})
@@ -47,23 +60,40 @@ const getProducts = async (req, res) => {
 const getCombinedProducts = async (req, res) => {
     try{
       const dbproducts = await Product.find();
-      const fakeApisRes = await fetch('https://fakestoreapi.com/products');
-      const fakeApiProducts = await fakeApisRes.json();
+
+      //fetch from fakeAPIstore
+
+            let fakeApiProducts = [];
+            try{
+                const fakeApisRes = await fetch('https://fakestoreapi.com/products');
+                if(!fakeApisRes.ok){
+                    throw new Error(`Fake Store API responded with status ${fakeApisRes.status}`);
+                }
+                const contentType = fakeApisRes.headers.get('content-type') || '';
+                if(!contentType.includes('application/json')){
+                    throw new Error(`Fake Store API returned non-JSON content (${contentType || 'unknown content type'})`);
+                }
+                fakeApiProducts = await fakeApisRes.json();
+                console.log(fakeApiProducts);
+                if(!Array.isArray(fakeApiProducts)){
+                    throw new Error('Fake Store API returned an unexpected response');
+                }
+            }catch(err){
+                console.error(`Using database products only: ${err.message}`);
+            }
       
       const combined = [
                 ...dbproducts.map(p => ({
                     ...p.toObject(),
-                    image: p.image || p.imageUrl,
-                    imageUrl: imageResolver(p.image || p.imageUrl, 'internal'),
-                    id: p._id.toString(),
+                    image: p.imageUrl,
                     source: 'internal'
                 })),
         ...fakeApiProducts.map(p => ({...p, id: p.id.toString(), source: 'external'}))
       ];
-      res.status(201).json(combined);
+            res.status(200).json(combined);
     }catch(err){
         console.log(err);
-        res.status(500).json({message: "couldn't fetch products"})
+                res.status(500).json({message: err.message || "couldn't fetch products"})
     }
 }
 
@@ -90,6 +120,10 @@ const deleteProductById = async (req, res) => {
             return res.status(404).json({message: "product not found"});
         }
 
+        if(product.cloudinaryPublicId){
+            await cloudinary.uploader.destroy(product.cloudinaryPublicId);
+        }
+
         const deleted = await Product.findByIdAndDelete(req.params.id);
         res.status(200).json(deleted);
     }catch(err){
@@ -109,8 +143,23 @@ const updateProductById = async(req, res) => {
         const {price, title, category} = req.body
 
         if(req.file){
-            const updated = await Product.findByIdAndUpdate(req.params.id, {price, title, category, imageUrl: req.file.path}, {new: true});
-            return res.status(200).json(updated);
+            const  result = await uploadToCloudinary(req.file.buffer);
+            const updated = await Product.findByIdAndUpdate(req.params.id, {
+                price,
+                title,
+                category,
+                imageUrl: result.secure_url,
+                cloudinaryPublicId: result.public_id
+            }, {new: true});
+
+            if(product.cloudinaryPublicId){
+                try{
+                    await cloudinary.uploader.destroy(product.cloudinaryPublicId);
+                }catch(cleanupError){
+                    console.error('Failed to delete replaced Cloudinary image:', cleanupError);
+                }
+            }
+            return res.status(200).json({message: "Product Updated", updated});
         }
         const updated = await Product.findByIdAndUpdate(req.params.id, {price, title, category}, {new: true});
 

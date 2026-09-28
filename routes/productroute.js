@@ -3,19 +3,7 @@ const router = express.Router();
 const {verifyToken} = require('../middlewares/verifyToken');
 const {isAdmin} = require('../middlewares/isAdmin');
 const {createProduct,getProducts, getProductById, deleteProductById, updateProductById, getCombinedProducts, toggleFeaturedProduct, getFeaturedProducts} = require('../controllers/productcontroller');
-const multer = require('multer');
-const path = require('path');
-const storage = multer.diskStorage({
-   destination: function (req, file, cb) {
-     cb(null, './uploads/')
-   },
-   filename: function (req, file, cb) {
-     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-     cb(null, file.fieldname + '-' + uniqueSuffix+path.extname(file.originalname))
-   }
- })
- 
- const upload = multer({ storage: storage })
+const upload = require('../middlewares/upload');
 //Static routes
 router.post('/product/create', verifyToken, isAdmin, upload.single('imageUrl'), createProduct);
 router.get('/product/combined/get', verifyToken, getCombinedProducts);
