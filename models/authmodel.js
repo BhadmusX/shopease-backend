@@ -20,6 +20,14 @@ const authSchema = new mongoose.Schema({
     refreshToken:{
         type: String,
         default: null
+    },
+    resetTokenExpiry: {
+        type: Date,
+        default: null
+    },
+    resetTokenHash: {
+        type: String,
+        default: null
     }
 }, {timestamps: true});
 

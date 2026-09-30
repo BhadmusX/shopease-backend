@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Auth = require('../models/authmodel');
 const redisClient = require('../config/redis');
+const crypto = require('crypto');
+const sendResetEmail = require('../utils/sendResetEmail.js')
 
 const signUp = async (req, res) => {
     const {name, email, password} = req.body;
@@ -157,4 +159,59 @@ const signOut = async (req, res)=> {
         return res.status(500).json({message: err.message});
     }
 }
-module.exports = {signIn, signUp, getMe, refreshToken, signOut};
+
+const forgotPassword = async(req, res) => {
+    try{
+    const {email} = req.body;
+    const emailExist = await Auth.findOne({email});
+
+    if(!emailExist){
+        return res.status(200).json({message: "A reset link has been sent to your email"});
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex'); 
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    emailExist.resetTokenExpiry = expiry;
+    emailExist.resetTokenHash = hashedToken;
+
+    await emailExist.save();
+
+    const resetLink = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
+    await sendResetEmail(emailExist.email, resetLink);
+
+    return res.status(200).json({message: 'A reset link has been set to your email.'})
+    }catch(err){
+        console.log(err);
+        return res.status(500).json({message: err.message || "An error occured when sending email"})
+    }
+
+}
+
+const resetPassword = async(req, res) => {
+    try{
+    const {token, newPassword} = req.body;
+    const hashedToken = crypto.createHash("sha256").update(token).digest('hex');
+    const user = await Auth.findOne({resetTokenHash: hashedToken});
+    if(!user){
+        return res.status(404).json({message: 'Invalid or expired token'});
+    }
+
+    if(user.resetTokenExpiry < Date.now()){
+        return res.status(400).json({message: 'Inavlid or expired token'});
+    }
+
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetTokenHash = null;
+    user.resetTokenExpiry = null;
+
+    await user.save();
+    return res.status(200).json({message: "Password reset successfully"});
+}catch(err){
+    console.log(err);
+    return res.status(500).json({message: err.message || "Error occured while resetting passowrd"});
+}
+}
+module.exports = {signIn, signUp, getMe, refreshToken, signOut, forgotPassword, resetPassword};
