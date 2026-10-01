@@ -178,7 +178,7 @@ const forgotPassword = async(req, res) => {
 
     await emailExist.save();
 
-    const resetLink = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
+    const resetLink = `${process.env.CLIENT_URL}/resetpassword/${rawToken}`;
     await sendResetEmail(emailExist.email, resetLink);
 
     return res.status(200).json({message: 'A reset link has been set to your email.'})
