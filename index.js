@@ -27,6 +27,8 @@ const paymentroute = require('./routes/paymentroute');
 app.use(paymentroute);
 const analyticsroute = require('./routes/analyticsroute');
 app.use(analyticsroute);
+const orderrouter = require('./routes/orderroute');
+app.use(orderrouter);
 
 
 

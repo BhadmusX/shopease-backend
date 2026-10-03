@@ -163,6 +163,9 @@ const signOut = async (req, res)=> {
 const forgotPassword = async(req, res) => {
     try{
     const {email} = req.body;
+    if(!email){
+        return res.status(400).json({message: "Fill in details"})
+    }
     const emailExist = await Auth.findOne({email});
 
     if(!emailExist){

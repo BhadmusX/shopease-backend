@@ -1,6 +1,7 @@
 const stripe = require("../config/stripe");
 const Order = require("../models/ordermodel");
 const Cart = require('../models/cartmodel');
+const {getNextOrderNumber} = require('../utils/getNextOrderNumber');
 
 const createCheckoutSession = async (req, res)=> {
     try{
@@ -91,12 +92,14 @@ const checkOutSuccess = async (req, res) => {
                 };
             })
 
+            const seq = await getNextOrderNumber();
 
             const newOrder = new Order({
                 user: session.metadata.userId,
                 products: orderProducts,
             totalAmount: session.amount_total / 100,
-            stripeSessionId: sessionId
+            stripeSessionId: sessionId,
+            orderId: `SE-${seq}`,
             })
 
             await newOrder.save();

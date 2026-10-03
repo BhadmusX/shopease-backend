@@ -41,6 +41,16 @@ const orderSchema = new mongoose.Schema({
     stripeSessionId: {
         type:String,
         unique:true,
+    },
+    status: {
+        type: String,
+        enum: ["pending", "processing", "delivered"],
+        default: "pending",
+    },
+    orderId: {
+        type: String,
+        unique: true,
+        required: true,
     }
 }, {timestamps: true});
 
