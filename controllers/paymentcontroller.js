@@ -36,9 +36,10 @@ const createCheckoutSession = async (req, res)=> {
             cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
             metadata: {
                 userId: String(req.user.id),
+                userName: req.user.name,
                 products: JSON.stringify(
                     products.map((p) => ({
-                        productId: p._id,
+                        productId: p.productId,
                         qty: p.qty,
                     }))
                 )
@@ -96,6 +97,7 @@ const checkOutSuccess = async (req, res) => {
 
             const newOrder = new Order({
                 user: session.metadata.userId,
+                name: session.metadata.userName,
                 products: orderProducts,
             totalAmount: session.amount_total / 100,
             stripeSessionId: sessionId,

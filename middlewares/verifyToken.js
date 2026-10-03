@@ -14,7 +14,7 @@ const verifyToken = async (req, res, next) => {
         if(!userinfo){
             return res.status(404).json({message: "User not found"})
         }
-        req.user = {id: userinfo._id, role: userinfo.role};
+        req.user = {id: userinfo._id, role: userinfo.role, name: userinfo.name};
         next();
     } catch(err){
         if(err.name === 'TokenExpiredError'){
