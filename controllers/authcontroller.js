@@ -3,7 +3,8 @@ const bcrypt = require('bcryptjs');
 const Auth = require('../models/authmodel');
 const redisClient = require('../config/redis');
 const crypto = require('crypto');
-const sendResetEmail = require('../utils/sendResetEmail.js')
+const sendResetEmail = require('../utils/sendResetEmail.js');
+const isProd = require('../config/isProd.js');
 
 const signUp = async (req, res) => {
     const {name, email, password} = req.body;
@@ -62,16 +63,16 @@ const signIn = async (req, res) => {
 
     res.cookie("access_token", token, {
         httpOnly: true,
-        sameSite: 'none', // fix this fo development too 
-        secure: true,
+        sameSite: isProd ? 'none' : "lax", 
+        secure: isProd,
         path: "/",
         maxAge: 15 * 60 * 1000,
     })
 
     res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
-        sameSite: "none",
-        secure: true,
+        sameSite: isProd ? 'none' : "lax", 
+        secure: isProd,
         path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
@@ -130,8 +131,8 @@ const refreshToken = async (req, res) => {
 
         res.cookie("access_token", newAccessToken, {
             httpOnly: true,
-            sameSite: 'none',
-            secure: true,
+            sameSite: isProd ? 'none' : "lax", 
+            secure: isProd,
             path: '/',
             maxAge: 15 * 60 * 1000
         });
