@@ -22,19 +22,19 @@ app.use(cookieParser());
 const {connectDB} = require('./config/db');
 connectDB();
 const authrouter = require('./routes/authroutes');
-app.use(authrouter);
+app.use('/api', authrouter);
 const productroute = require('./routes/productroute');
-app.use(productroute);
+app.use('/api', productroute);
 const favoriteroute = require('./routes/favoriteroute');
-app.use(favoriteroute);
+app.use('/api', favoriteroute);
 const cartroute = require('./routes/cartroute');
-app.use(cartroute);
+app.use('/api', cartroute);
 const paymentroute = require('./routes/paymentroute');
-app.use(paymentroute);
+app.use('/api', paymentroute);
 const analyticsroute = require('./routes/analyticsroute');
-app.use(analyticsroute);
+app.use('/api', analyticsroute);
 const orderrouter = require('./routes/orderroute');
-app.use(orderrouter);
+app.use('/api', orderrouter);
 
 
 
