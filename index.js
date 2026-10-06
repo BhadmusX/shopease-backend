@@ -5,11 +5,17 @@ const port = process.env.PORT;
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-app.use(express.json());
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://shopeasexx.netlify.app',
+    process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(cors({
-    origin: ['http://localhost:5173' || "https://shopeasexxx.netlify.app"],
+    origin: allowedOrigins,
     credentials: true
 }));
+app.use(express.json());
 app.use(cookieParser());
  app.use('/uploads', express.static('uploads'));
 
