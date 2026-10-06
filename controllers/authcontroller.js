@@ -62,16 +62,16 @@ const signIn = async (req, res) => {
 
     res.cookie("access_token", token, {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: false,
+        sameSite: 'none', // fix this fo development too 
+        secure: true,
         path: "/",
         maxAge: 15 * 60 * 1000,
     })
 
     res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
-        sameSite: "lax",
-        secure: false,
+        sameSite: "none",
+        secure: true,
         path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
@@ -130,8 +130,8 @@ const refreshToken = async (req, res) => {
 
         res.cookie("access_token", newAccessToken, {
             httpOnly: true,
-            sameSite: 'lax',
-            secure: false,
+            sameSite: 'none',
+            secure: true,
             path: '/',
             maxAge: 15 * 60 * 1000
         });
